@@ -1,0 +1,84 @@
+<!-- Add to /var/ossec/etc/rules/local_rules.xml -->
+<group name="azure_devops,">
+
+  <!-- Base rule: any Azure DevOps audit log -->
+  <rule id="100701" level="3">
+    <decoded_as>json</decoded_as>
+    <field name="Logtype">AzureDevops</field>
+    <description>Azure DevOps: Audit log event</description>
+    <group>azure_devops,</group>
+  </rule>
+
+  <!-- Security permission changes -->
+  <rule id="100702" level="10">
+    <if_sid>100701</if_sid>
+    <field name="AzureDevops.ActionId">^Security\.</field>
+    <description>Azure DevOps: Security permission modified by $(AzureDevops.ActorDisplayName)</description>
+    <group>azure_devops,pci_dss_10.2.5,gdpr_IV_35.7.d,hipaa_164.312.b,nist_800_53_AU.14,tsc_CC6.8,</group>
+  </rule>
+
+  <!-- Destructive Git operations -->
+  <rule id="100703" level="9">
+    <if_sid>100701</if_sid>
+    <field name="AzureDevops.ActionId">Git\.RefDeleteEvent|Git\.ForcePush</field>
+    <description>Azure DevOps: Destructive Git action by $(AzureDevops.ActorDisplayName) - $(AzureDevops.ActionId)</description>
+    <group>azure_devops,code_integrity,</group>
+  </rule>
+
+  <!-- Pipeline modifications -->
+  <rule id="100704" level="8">
+    <if_sid>100701</if_sid>
+    <field name="AzureDevops.ActionId">^Release\.|Build\.Pipeline</field>
+    <description>Azure DevOps: Pipeline modified by $(AzureDevops.ActorDisplayName) - $(AzureDevops.ActionId)</description>
+    <group>azure_devops,devsecops,</group>
+  </rule>
+
+  <!-- User/group membership changes -->
+  <rule id="100705" level="7">
+    <if_sid>100701</if_sid>
+    <field name="AzureDevops.ActionId">Group\.UpdateGroupMembership|Licensing\.Assign|Security\.ModifyPermission</field>
+    <description>Azure DevOps: User access change by $(AzureDevops.ActorDisplayName) - $(AzureDevops.ActionId)</description>
+    <group>azure_devops,access_control,</group>
+  </rule>
+
+  <!-- Project settings changes -->
+  <rule id="100706" level="6">
+    <if_sid>100701</if_sid>
+    <field name="AzureDevops.ActionId">^Project\.</field>
+    <description>Azure DevOps: Project settings changed by $(AzureDevops.ActorDisplayName)</description>
+    <group>azure_devops,configuration_change,</group>
+  </rule>
+
+  <!-- Service connection changes (high risk) -->
+  <rule id="100707" level="11">
+    <if_sid>100701</if_sid>
+    <field name="AzureDevops.ActionId">ServiceConnection\.</field>
+    <description>Azure DevOps: Service connection modified by $(AzureDevops.ActorDisplayName) - HIGH RISK</description>
+    <group>azure_devops,credential_access,</group>
+  </rule>
+
+  <!-- Repository deletion -->
+  <rule id="100708" level="12">
+    <if_sid>100701</if_sid>
+    <field name="AzureDevops.ActionId">Git\.RepositoryDestroyed</field>
+    <description>Azure DevOps: Repository DELETED by $(AzureDevops.ActorDisplayName) - CRITICAL</description>
+    <group>azure_devops,data_loss,</group>
+  </rule>
+
+  <!-- Optional: after-hours activity -->
+  <rule id="100709" level="8">
+    <if_sid>100701</if_sid>
+    <time>8 pm - 6 am</time>
+    <description>Azure DevOps: After-hours activity detected by $(AzureDevops.ActorDisplayName)</description>
+    <group>azure_devops,after_hours,</group>
+  </rule>
+
+  <!-- Optional: access from non-private IP -->
+  <rule id="100710" level="9">
+    <if_sid>100701</if_sid>
+    <field name="AzureDevops.IpAddress" negate="yes">^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)</field>
+    <description>Azure DevOps: External IP access by $(AzureDevops.ActorDisplayName) from $(AzureDevops.IpAddress)</description>
+    <group>azure_devops,external_access,</group>
+  </rule>
+
+</group>

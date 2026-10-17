@@ -1,0 +1,6 @@
+<!-- Add inside <ossec_config> in /var/ossec/etc/ossec.conf -->
+<!-- Azure DevOps Audit Logs -->
+<localfile>
+  <log_format>json</log_format>
+  <location>/var/log/AzureDevops/AzureDevops_Audit_logs.json</location>
+</localfile>

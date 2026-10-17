@@ -1,0 +1,3 @@
+# Edit with: sudo crontab -e -u root
+# Use "." instead of "source": cron runs /bin/sh (dash on Ubuntu/Debian), which has no "source".
+*/5 * * * * . /var/ossec/integrations/azure_devops.env && /usr/bin/python3 /var/ossec/integrations/azure_devops_audit.py >> /var/log/AzureDevops/script.log 2>&1
